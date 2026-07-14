@@ -1,25 +1,34 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
-public class BallAnimation : MonoBehaviour
+public class Menu : MonoBehaviour
 {
     [SerializeField] private int _levelToLoad;
     [SerializeField] private GameObject _title;
 
-    [SerializeField] private Animator _animator;
-    private int _rotateAnimation = Animator.StringToHash("Rotation");
+    [SerializeField] private CanvasGroup fadePanel;
+    [SerializeField] private float duration = 0.5f;
 
-    public void FastRotation()
+    private void Start()
     {
-        _animator.SetTrigger(_rotateAnimation);
-        _title.SetActive(false);
-        StartCoroutine(LoadScene());
+        fadePanel.alpha = 1;
+        fadePanel.blocksRaycasts = true;
+
+        fadePanel.DOFade(0, duration)
+            .SetEase(Ease.InOutQuad) 
+            .OnComplete(() => fadePanel.blocksRaycasts = false);
     }
 
-    public IEnumerator LoadScene()
+    public void LoadNewScene(string sceneName)
     {
-        yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene(_levelToLoad);
+
+        _title.SetActive(false);
+        fadePanel.blocksRaycasts = true;
+
+        fadePanel.DOFade(1, duration)
+            .SetEase(Ease.InOutQuad)
+            .OnComplete(() => SceneManager.LoadScene(_levelToLoad));
     }
 }

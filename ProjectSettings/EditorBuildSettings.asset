@@ -9,14 +9,17 @@ EditorBuildSettings:
     path: Assets/Scenes/MenuScene.unity
     guid: a2a2b5cffd7e20f448d09c0085deb5c7
   - enabled: 1
-    path: Assets/Scenes/BaseGameScene.unity
+    path: Assets/Scenes/BaseScene.unity
     guid: 02451c63a28104c409a54136514c8139
   - enabled: 1
-    path: Assets/Scenes/OrderGameScene.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
+    path: Assets/Scenes/ChaosScene.unity
+    guid: 15c9198028b40214bbc3130b63db7913
   - enabled: 1
-    path: Assets/Scenes/ChaosGameScene.unity
-    guid: 23029a1907927bb4c8db90b50c8e5b5e
+    path: Assets/Scenes/SnowballScene.unity
+    guid: 1bd1c2e914089c14c84f83f5d8f77830
+  - enabled: 1
+    path: Assets/Scenes/BlitzScene.unity
+    guid: a8ae1471043352c41aa3a5ea11ad2e98
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
