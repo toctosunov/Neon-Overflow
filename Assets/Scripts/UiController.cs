@@ -10,12 +10,22 @@ public class UiController : MonoBehaviour
     public TextMeshProUGUI losePanelHighScoreText;
 
     public GameObject losePanel;
+
+    [Tooltip("Optional. \"Continue for a rewarded ad?\" panel, shown by " +
+        "ScoreController instead of an immediate Game Over when a revive is " +
+        "available. Leave empty to keep today's behavior (no revive offer).")]
+    public GameObject revivePanel;
+
     [SerializeField] private int _menuScene;
 
     private void Start()
     {
         Instance = this;
         losePanel.SetActive(false);
+        if (revivePanel != null)
+        {
+            revivePanel.SetActive(false);
+        }
         if (countText != null)
         {
             countText.SetText("Очки: " + ScoreController.Instance.score.ToString());
