@@ -55,17 +55,20 @@ public class Ball : MonoBehaviour
         if (_instanceMaterial == null)
         {
             PhysicsMaterial2D source = _collider.sharedMaterial;
-            _instanceMaterial = new PhysicsMaterial2D(source != null ? source.name + " (Instance)" : "Ball Material (Instance)");
             if (source != null)
             {
-                _instanceMaterial.friction = source.friction;
-                _instanceMaterial.bounciness = source.bounciness;
-                // Also copy the combine modes - the original asset uses Maximum bounce
-                // combine (not the `new PhysicsMaterial2D()` default of Average), which
-                // matters a lot for how bouncy collisions against the floor/walls feel.
-                // Missing this made balls barely bounce at all after instancing.
-                _instanceMaterial.frictionCombine = source.frictionCombine;
-                _instanceMaterial.bounceCombine = source.bounceCombine;
+                // Object.Instantiate() makes a full, properly engine-backed clone
+                // (every serialized field, including frictionCombine/bounceCombine)
+                // the same way Unity creates per-instance copies for Renderer.material
+                // or 3D Collider.material. A plain `new PhysicsMaterial2D(...)` with
+                // manually-copied fields looked identical in the Inspector but didn't
+                // actually affect physics at runtime - balls stopped bouncing entirely.
+                _instanceMaterial = Instantiate(source);
+                _instanceMaterial.name = source.name + " (Instance)";
+            }
+            else
+            {
+                _instanceMaterial = new PhysicsMaterial2D("Ball Material (Instance)");
             }
             _collider.sharedMaterial = _instanceMaterial;
         }
