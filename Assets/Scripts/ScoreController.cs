@@ -43,14 +43,29 @@ public class ScoreController : MonoBehaviour
         isRecorted = false;
         _reviveUsed = false;
         _pendingGameOver = false;
+
         _rewardedAdProvider = _rewardedAdProviderBehaviour as IRewardedAdProvider;
+        if (_rewardedAdProvider == null)
+        {
+            // Nothing wired up in the Inspector - fall back to whatever
+            // IRewardedAdProvider GameBootstrap set up automatically (normally a
+            // Yandex.YandexRewardedAdProvider on the persistent bridge object).
+            foreach (MonoBehaviour behaviour in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
+            {
+                if (behaviour is IRewardedAdProvider provider)
+                {
+                    _rewardedAdProvider = provider;
+                    break;
+                }
+            }
+        }
     }
 
 
     private void CountChanged()
     {
         score += 1;
-        UiController.Instance.countText.SetText("Очки: " + score.ToString());
+        UiController.Instance.countText.SetText(Localization.Get(Localization.Score) + score.ToString());
 
         if (score >= recordScore && !isRecorted)
         {
@@ -139,44 +154,50 @@ public class ScoreController : MonoBehaviour
 
     private void GameOver()
     {
+        BallSpawn.gameMode mode = _spawner.GetComponent<BallSpawn>()._gameMode;
+        string key = GetScoreKey(mode);
+
         if (isRecorted)
         {
-            BallSpawn.gameMode mode = _spawner.GetComponent<BallSpawn>()._gameMode;
-            string key = "";
-
-            switch (mode)
-            {
-                case BallSpawn.gameMode.Base: key = "BaseScore"; break;
-                case BallSpawn.gameMode.Snawball: key = "SnawballScore"; break;
-                case BallSpawn.gameMode.Chaos: key = "ChaosScore"; break;
-                case BallSpawn.gameMode.Blitz: key = "BlitzScore"; break;
-            }
             PlayerPrefs.SetInt(key, score);
             recordScore = PlayerPrefs.GetInt(key, 0);
-            UiController.Instance.losePanelHighScoreText.SetText("Новый рекорд: " + recordScore.ToString());
+            UiController.Instance.losePanelHighScoreText.SetText(Localization.Get(Localization.NewRecord) + recordScore.ToString());
         }
         else
         {
             OnScoreChanged();
 
-            UiController.Instance.losePanelHighScoreText.SetText("Рекорд: " + recordScore.ToString());
+            UiController.Instance.losePanelHighScoreText.SetText(Localization.Get(Localization.Record) + recordScore.ToString());
         }
+
+        // Fire-and-forget: no-ops outside a Yandex Games WebGL build (see
+        // YandexGamesBridge). Submits every run's score, not just new records -
+        // the Yandex leaderboard itself only displays each player's best.
+        if (Yandex.YandexGamesBridge.Instance != null && !string.IsNullOrEmpty(key))
+        {
+            Yandex.YandexGamesBridge.Instance.SubmitLeaderboardScore(key, score);
+        }
+
         UiController.Instance.losePanel.SetActive(true);
         _spawner.SetActive(false);
+    }
+
+    private static string GetScoreKey(BallSpawn.gameMode mode)
+    {
+        switch (mode)
+        {
+            case BallSpawn.gameMode.Base: return "BaseScore";
+            case BallSpawn.gameMode.Snawball: return "SnawballScore";
+            case BallSpawn.gameMode.Chaos: return "ChaosScore";
+            case BallSpawn.gameMode.Blitz: return "BlitzScore";
+            default: return "";
+        }
     }
 
     public int OnScoreChanged()
     {
         BallSpawn.gameMode mode = _spawner.GetComponent<BallSpawn>()._gameMode;
-
-        string key = "";
-        switch (mode)
-        {
-            case BallSpawn.gameMode.Base: key = "BaseScore"; break;
-            case BallSpawn.gameMode.Snawball: key = "SnawballScore"; break; 
-            case BallSpawn.gameMode.Chaos: key = "ChaosScore"; break;
-            case BallSpawn.gameMode.Blitz: key = "BlitzScore"; break;
-        }
+        string key = GetScoreKey(mode);
 
         recordScore = PlayerPrefs.GetInt(key, 0); 
         return recordScore;

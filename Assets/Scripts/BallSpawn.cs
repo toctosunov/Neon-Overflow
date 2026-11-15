@@ -31,14 +31,14 @@ public class BallSpawn : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Mouse0))
+        if (IsPointerDown())
         {
             Spawn();
         }
-        if (Input.GetKeyUp(KeyCode.Mouse0))
+        if (IsPointerUp())
         {
-            // _lastball can be null if the player releases the mouse button
-            // without ever having held a ball (e.g. mouse-up outside the game
+            // _lastball can be null if the player releases the pointer
+            // without ever having held a ball (e.g. pointer-up outside the game
             // view, or a stray event before the first spawn).
             if (_lastball != null)
             {
@@ -51,6 +51,41 @@ public class BallSpawn : MonoBehaviour
             _hold = false;
             _isSpawning = false;
         }
+    }
+
+    /// <summary>
+    /// Mouse works fine in the Editor and on desktop browsers, but WebGL on mobile
+    /// doesn't reliably synthesize mouse events from touches, so touch is handled
+    /// explicitly here rather than relying on that emulation. When a touch is
+    /// active it takes priority over mouse for that frame to avoid double input
+    /// from browsers that *do* also emit a synthetic mouse event alongside touch.
+    /// </summary>
+    private bool IsPointerDown()
+    {
+        if (Input.touchCount > 0)
+        {
+            return Input.GetTouch(0).phase == TouchPhase.Began;
+        }
+        return Input.GetMouseButtonDown(0);
+    }
+
+    private bool IsPointerUp()
+    {
+        if (Input.touchCount > 0)
+        {
+            TouchPhase phase = Input.GetTouch(0).phase;
+            return phase == TouchPhase.Ended || phase == TouchPhase.Canceled;
+        }
+        return Input.GetMouseButtonUp(0);
+    }
+
+    private Vector3 GetPointerScreenPosition()
+    {
+        if (Input.touchCount > 0)
+        {
+            return Input.GetTouch(0).position;
+        }
+        return Input.mousePosition;
     }
 
     private void FixedUpdate()
@@ -69,8 +104,8 @@ public class BallSpawn : MonoBehaviour
             return;
         }
 
-        Vector3 mouseWorldPos = _camera.ScreenToWorldPoint(Input.mousePosition);
-        float targetX = mouseWorldPos.x;
+        Vector3 pointerWorldPos = _camera.ScreenToWorldPoint(GetPointerScreenPosition());
+        float targetX = pointerWorldPos.x;
 
         targetX = Mathf.Clamp(targetX, -1.40f, 1.40f);
 
@@ -84,7 +119,7 @@ public class BallSpawn : MonoBehaviour
     {
         if (!_isSpawning && !_hold && _canSpawn)
         {
-            _mousePosition = _camera.ScreenToWorldPoint(Input.mousePosition);
+            _mousePosition = _camera.ScreenToWorldPoint(GetPointerScreenPosition());
             _mousePosition.z = 0;
             _mousePosition.y = 2.8f;
 
