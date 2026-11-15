@@ -60,6 +60,12 @@ public class Ball : MonoBehaviour
             {
                 _instanceMaterial.friction = source.friction;
                 _instanceMaterial.bounciness = source.bounciness;
+                // Also copy the combine modes - the original asset uses Maximum bounce
+                // combine (not the `new PhysicsMaterial2D()` default of Average), which
+                // matters a lot for how bouncy collisions against the floor/walls feel.
+                // Missing this made balls barely bounce at all after instancing.
+                _instanceMaterial.frictionCombine = source.frictionCombine;
+                _instanceMaterial.bounceCombine = source.bounceCombine;
             }
             _collider.sharedMaterial = _instanceMaterial;
         }
