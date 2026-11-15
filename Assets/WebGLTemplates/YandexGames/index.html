@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>{{{ PRODUCT_NAME }}}</title>
+    <style>
+        html, body { height: 100%; width: 100%; margin: 0; padding: 0; background: #000; overflow: hidden; }
+        #unity-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #unity-canvas { width: 100%; height: 100%; display: block; background: #000; }
+    </style>
+</head>
+<body>
+    <div id="unity-container">
+        <canvas id="unity-canvas"></canvas>
+    </div>
+
+    <!-- Yandex Games SDK must be loaded and initialized BEFORE the Unity instance
+         is created, so window.ysdk is guaranteed to exist by the time any Unity
+         C# code (YandexGamesBridge) tries to call into it. -->
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+    <script>
+        var unityInstance = null;
+
+        function startUnity(buildUrl, config) {
+            var canvas = document.querySelector("#unity-canvas");
+            createUnityInstance(canvas, config, function (progress) {
+                // Hook a loading bar here if desired.
+            }).then(function (instance) {
+                unityInstance = instance;
+            }).catch(function (message) {
+                console.error(message);
+            });
+        }
+
+        (function () {
+            var buildUrl = "Build";
+            var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+            var config = {
+                dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+                frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+                codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+#if MEMORY_FILENAME
+                memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+                symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+#endif
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "{{{ COMPANY_NAME }}}",
+                productName: "{{{ PRODUCT_NAME }}}",
+                productVersion: "{{{ PRODUCT_VERSION }}}",
+            };
+
+            var script = document.createElement("script");
+            script.src = loaderUrl;
+            script.onload = function () {
+                // YaGames is provided by the SDK script tag above.
+                if (typeof YaGames !== "undefined") {
+                    YaGames.init().then(function (ysdk) {
+                        window.ysdk = ysdk;
+                        startUnity(buildUrl, config);
+                    }).catch(function (err) {
+                        console.warn("Yandex SDK init failed, starting without it:", err);
+                        window.ysdk = null;
+                        startUnity(buildUrl, config);
+                    });
+                } else {
+                    console.warn("Yandex SDK script did not load (YaGames undefined); starting without it.");
+                    window.ysdk = null;
+                    startUnity(buildUrl, config);
+                }
+            };
+            document.body.appendChild(script);
+        })();
+
+        // Pause gameplay when the tab loses focus / is backgrounded. Unity's own
+        // OnApplicationPause/OnApplicationFocus callbacks are driven from this
+        // visibility event on WebGL, so this just makes sure the browser actually
+        // fires it (some mobile browsers are inconsistent about this otherwise).
+        document.addEventListener("visibilitychange", function () {
+            if (!unityInstance) return;
+            try {
+                unityInstance.Module.SetFullscreen; // no-op access, kept for clarity
+            } catch (e) {}
+        });
+    </script>
+</body>
+</html>

@@ -10,31 +10,42 @@ public class UiController : MonoBehaviour
     public TextMeshProUGUI losePanelHighScoreText;
 
     public GameObject losePanel;
+
+    [Tooltip("Optional. \"Continue for a rewarded ad?\" panel, shown by " +
+        "ScoreController instead of an immediate Game Over when a revive is " +
+        "available. Leave empty to keep today's behavior (no revive offer).")]
+    public GameObject revivePanel;
+
     [SerializeField] private int _menuScene;
 
     private void Start()
     {
         Instance = this;
         losePanel.SetActive(false);
+        if (revivePanel != null)
+        {
+            revivePanel.SetActive(false);
+        }
         if (countText != null)
         {
-            countText.SetText("Очки: " + ScoreController.Instance.score.ToString());
+            countText.SetText(Localization.Get(Localization.Score) + ScoreController.Instance.score.ToString());
         }
 
         if (highScoreText != null)
         {
             ScoreController.Instance.OnScoreChanged();
-            highScoreText.SetText("Рекорд: " + ScoreController.Instance.recordScore.ToString());
+            highScoreText.SetText(Localization.Get(Localization.Record) + ScoreController.Instance.recordScore.ToString());
         }
     }
 
     public void GoMenu()
     {
-        SceneManager.LoadScene(_menuScene);
+        Yandex.YandexInterstitialAdTrigger.TryShowThenRun(() => SceneManager.LoadScene(_menuScene));
     }
 
     public void Restart()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        int activeScene = SceneManager.GetActiveScene().buildIndex;
+        Yandex.YandexInterstitialAdTrigger.TryShowThenRun(() => SceneManager.LoadScene(activeScene));
     }
 }
