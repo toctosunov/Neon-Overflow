@@ -17,6 +17,12 @@ public class Ball : MonoBehaviour
     [SerializeField] private Collider2D _collider;
     private AudioSource _audioSource;
 
+    // Collider2D has no auto-instancing `.material` shorthand the way 3D Collider
+    // does - only `sharedMaterial`, which really is shared across every ball using
+    // the same PhysicsMaterial2D asset. This is a lazily-created per-ball copy so
+    // tweaking bounciness/friction here never leaks into other balls.
+    private PhysicsMaterial2D _instanceMaterial;
+
     private Rigidbody2D _rigidbody;
 
     private void Awake()
@@ -38,24 +44,44 @@ public class Ball : MonoBehaviour
         _rigidbody.gravityScale = gravity;
     }
 
+    /// <summary>
+    /// Returns this ball's own instance of its physics material, creating it (as a
+    /// copy of whatever sharedMaterial was assigned in the Inspector) the first
+    /// time it's needed, and assigning it back to the collider so this ball no
+    /// longer shares the original asset with every other ball.
+    /// </summary>
+    private PhysicsMaterial2D GetInstanceMaterial()
+    {
+        if (_instanceMaterial == null)
+        {
+            PhysicsMaterial2D source = _collider.sharedMaterial;
+            _instanceMaterial = new PhysicsMaterial2D(source != null ? source.name + " (Instance)" : "Ball Material (Instance)");
+            if (source != null)
+            {
+                _instanceMaterial.friction = source.friction;
+                _instanceMaterial.bounciness = source.bounciness;
+            }
+            _collider.sharedMaterial = _instanceMaterial;
+        }
+        return _instanceMaterial;
+    }
+
     public void OnGameModeChanged(BallSpawn.gameMode gameMode)
     {
-        // NOTE: `_collider.material` (not `sharedMaterial`) creates a per-instance
-        // runtime copy of the physics material the first time it's accessed, so changing
-        // bounciness/friction here no longer leaks into every other ball using the same asset.
-        _collider.material.friction = 0.3f;
+        PhysicsMaterial2D material = GetInstanceMaterial();
+        material.friction = 0.3f;
         if (gameMode == BallSpawn.gameMode.Base)
         {
-            _collider.material.bounciness = 0.4f;
+            material.bounciness = 0.4f;
         }
         if (gameMode == BallSpawn.gameMode.Chaos)
         {
             float index = UnityEngine.Random.Range(0, 0.8f);
-            _collider.material.bounciness = index;
+            material.bounciness = index;
         }
         if (gameMode == BallSpawn.gameMode.Snawball)
         {
-            _collider.material.bounciness = 0.4f;
+            material.bounciness = 0.4f;
             StartCoroutine(OnScaleChanged());
         }
     }
