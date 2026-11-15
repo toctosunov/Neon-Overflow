@@ -40,19 +40,22 @@ public class Ball : MonoBehaviour
 
     public void OnGameModeChanged(BallSpawn.gameMode gameMode)
     {
-        _collider.sharedMaterial.friction = 0.3f;
+        // NOTE: `_collider.material` (not `sharedMaterial`) creates a per-instance
+        // runtime copy of the physics material the first time it's accessed, so changing
+        // bounciness/friction here no longer leaks into every other ball using the same asset.
+        _collider.material.friction = 0.3f;
         if (gameMode == BallSpawn.gameMode.Base)
         {
-            _collider.sharedMaterial.bounciness = 0.4f;
+            _collider.material.bounciness = 0.4f;
         }
         if (gameMode == BallSpawn.gameMode.Chaos)
         {
             float index = UnityEngine.Random.Range(0, 0.8f);
-            _collider.sharedMaterial.bounciness = index;
+            _collider.material.bounciness = index;
         }
         if (gameMode == BallSpawn.gameMode.Snawball)
         {
-            _collider.sharedMaterial.bounciness = 0.4f;
+            _collider.material.bounciness = 0.4f;
             StartCoroutine(OnScaleChanged());
         }
     }
