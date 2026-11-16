@@ -3,7 +3,11 @@ using UnityEngine;
 
 public class BallSpawn : MonoBehaviour
 {
-    public enum gameMode { Chaos, Snawball, Base, Blitz }
+    // New values are appended at the end (never inserted/reordered) because
+    // existing scenes store this enum as the plain int Unity serializes it as -
+    // reordering would silently repoint every already-configured BallSpawn in
+    // the 4 existing scenes to the wrong mode.
+    public enum gameMode { Chaos, Snawball, Base, Blitz, Gravity, Infinite }
     public gameMode _gameMode;
 
     [SerializeField] GameObject[] balls;

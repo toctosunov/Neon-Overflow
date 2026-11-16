@@ -72,10 +72,27 @@ public class ScoreController : MonoBehaviour
             UiController.Instance.highScoreText.enabled = false;
             isRecorted = true;
         }
+
+        // Infinite mode never calls GameOver() (see MinusLife below), so there's
+        // no single moment where a "run" ends to save the record like every other
+        // mode does. Instead, persist the record live, the instant it's beaten,
+        // so it survives even if the player just closes the tab.
+        if (CurrentGameMode() == BallSpawn.gameMode.Infinite)
+        {
+            PersistRecordIfBeaten(BallSpawn.gameMode.Infinite);
+        }
     }
 
     private void MinusLife()
     {
+        // Infinite mode has no game over: an overflowing ball is still destroyed
+        // by Barrier itself (that part isn't mode-specific), but it never costs a
+        // life, so the run simply never ends here.
+        if (CurrentGameMode() == BallSpawn.gameMode.Infinite)
+        {
+            return;
+        }
+
         if (life > 0)
         {
             life -= 1;
@@ -83,6 +100,29 @@ public class ScoreController : MonoBehaviour
             {
                 TryOfferReviveOrGameOver();
             }
+        }
+    }
+
+    private BallSpawn.gameMode CurrentGameMode()
+    {
+        return _spawner.GetComponent<BallSpawn>()._gameMode;
+    }
+
+    private void PersistRecordIfBeaten(BallSpawn.gameMode mode)
+    {
+        string key = GetScoreKey(mode);
+        if (string.IsNullOrEmpty(key) || score <= PlayerPrefs.GetInt(key, 0))
+        {
+            return;
+        }
+
+        PlayerPrefs.SetInt(key, score);
+        recordScore = score;
+
+        // Fire-and-forget: no-ops outside a Yandex Games WebGL build.
+        if (Yandex.YandexGamesBridge.Instance != null)
+        {
+            Yandex.YandexGamesBridge.Instance.SubmitLeaderboardScore(key, score);
         }
     }
 
@@ -154,7 +194,7 @@ public class ScoreController : MonoBehaviour
 
     private void GameOver()
     {
-        BallSpawn.gameMode mode = _spawner.GetComponent<BallSpawn>()._gameMode;
+        BallSpawn.gameMode mode = CurrentGameMode();
         string key = GetScoreKey(mode);
 
         if (isRecorted)
@@ -190,13 +230,15 @@ public class ScoreController : MonoBehaviour
             case BallSpawn.gameMode.Snawball: return "SnawballScore";
             case BallSpawn.gameMode.Chaos: return "ChaosScore";
             case BallSpawn.gameMode.Blitz: return "BlitzScore";
+            case BallSpawn.gameMode.Gravity: return "GravityScore";
+            case BallSpawn.gameMode.Infinite: return "InfiniteScore";
             default: return "";
         }
     }
 
     public int OnScoreChanged()
     {
-        BallSpawn.gameMode mode = _spawner.GetComponent<BallSpawn>()._gameMode;
+        BallSpawn.gameMode mode = CurrentGameMode();
         string key = GetScoreKey(mode);
 
         recordScore = PlayerPrefs.GetInt(key, 0); 

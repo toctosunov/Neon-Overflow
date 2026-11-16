@@ -74,11 +74,13 @@ public class Ball : MonoBehaviour
             return;
         }
 
-        // Base and Snowball always use the exact same fixed friction/bounciness for
+        // Every other mode (Base, Snowball, Blitz, Gravity, Infinite, and any
+        // future addition) always uses the exact same fixed friction/bounciness for
         // every ball, so there's nothing to leak between balls here - mutating the
         // one shared asset directly (same as the game's original behavior) is fine
         // and is confirmed to bounce correctly both against the floor and against
-        // other balls.
+        // other balls. Only Snowball layers an extra per-ball behavior (growing
+        // over time) on top of this.
         PhysicsMaterial2D material = _collider.sharedMaterial;
         if (material == null)
         {
@@ -86,13 +88,10 @@ public class Ball : MonoBehaviour
         }
 
         material.friction = 0.3f;
-        if (gameMode == BallSpawn.gameMode.Base)
-        {
-            material.bounciness = 0.4f;
-        }
+        material.bounciness = 0.4f;
+
         if (gameMode == BallSpawn.gameMode.Snawball)
         {
-            material.bounciness = 0.4f;
             StartCoroutine(OnScaleChanged());
         }
     }
