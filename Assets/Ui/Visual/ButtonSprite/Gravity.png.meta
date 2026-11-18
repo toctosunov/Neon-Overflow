@@ -1,13 +1,16 @@
 fileFormatVersion: 2
-guid: 4d1155712164d084bb361934bc392b95
+guid: 011b387247327b245add01c75cd1b00e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7540476779966992265
-    second: order_0
+      213: -4294359870429457729
+    second: Gravity_0
   - first:
-      213: 8024185611180085387
-    second: order_1
+      213: 3922600683461114766
+    second: Gravity_1
+  - first:
+      213: 1731245572835697741
+    second: Gravity_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,7 +52,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -112,17 +115,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: order_0
+      name: Gravity_0
       rect:
         serializedVersion: 2
-        x: 31
-        y: 0
-        width: 194
-        height: 217
+        x: 193
+        y: 192
+        width: 127
+        height: 127
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,20 +147,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 98f83032ea725a860800000000000000
-      internalID: 7540476779966992265
+      spriteID: fb21c59437e5764c0800000000000000
+      internalID: -4294359870429457729
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: order_1
+      name: Gravity_1
       rect:
         serializedVersion: 2
-        x: 71
-        y: 191
-        width: 114
-        height: 65
+        x: 220
+        y: 319
+        width: 73
+        height: 150
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +169,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b809036ac42ab5f60800000000000000
-      internalID: 8024185611180085387
+      spriteID: e8b776de980ef6630800000000000000
+      internalID: 3922600683461114766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Gravity_2
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 43
+        width: 73
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d44e6db0dae960810800000000000000
+      internalID: 1731245572835697741
       vertices: []
       indices: 
       edges: []
@@ -163,7 +201,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -173,8 +211,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      order_0: 7540476779966992265
-      order_1: 8024185611180085387
+      Gravity_0: -4294359870429457729
+      Gravity_1: 3922600683461114766
+      Gravity_2: 1731245572835697741
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
