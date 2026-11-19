@@ -2,14 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Minimal string localization so the UI isn't hardcoded to Russian. Language is
-/// picked once per session: from the Yandex Games SDK's reported language when
-/// running on Yandex Games, falling back to Unity's Application.systemLanguage
-/// elsewhere (Editor, other platforms), and finally to Russian if neither maps to
-/// a known language.
+/// Minimal string localization. Language is picked once per session: from the
+/// Yandex Games SDK's reported language when actually running on Yandex Games,
+/// English everywhere else (Editor, CrazyGames, any other platform).
 ///
-/// Add more languages by adding another inner dictionary to _strings and another
-/// case to ResolveLanguageCode(); every call site only ever asks for a key via
+/// Earlier this fell back to Application.systemLanguage outside Yandex, which
+/// meant a WebGL build hosted anywhere else (CrazyGames included) still showed
+/// Russian for any player whose OS/browser language was Russian - not just for
+/// players actually on Yandex. Since other platforms require English and have
+/// no SDK of their own to report a language through, "not Yandex" now just
+/// means English, full stop.
+///
+/// Add more languages by adding another inner dictionary to _strings and
+/// widening ResolveLanguageCode(); every call site only ever asks for a key via
 /// Localization.Get(...), so adding languages never touches gameplay code.
 /// </summary>
 public static class Localization
@@ -82,12 +87,12 @@ public static class Localization
         }
 #endif
 
-        switch (Application.systemLanguage)
-        {
-            case SystemLanguage.Russian:
-                return "ru";
-            default:
-                return _strings.ContainsKey("en") ? "en" : "ru";
-        }
+        // No Yandex SDK reporting a language (Editor, CrazyGames, any other host):
+        // always English. This intentionally does NOT consult
+        // Application.systemLanguage anymore - it used to, which meant a build
+        // hosted anywhere other than Yandex still showed Russian for any player
+        // whose OS/browser happened to be set to Russian, defeating the point of
+        // shipping an English build for platforms that require one.
+        return "en";
     }
 }
