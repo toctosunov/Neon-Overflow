@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class BallSpawn : MonoBehaviour
 {
@@ -35,7 +36,12 @@ public class BallSpawn : MonoBehaviour
 
     private void Update()
     {
-        if (IsPointerDown())
+        // A press that starts on a UI element (the pause button, panel buttons,
+        // etc.) shouldn't also register as "drop a ball" just because it happened
+        // somewhere on the screen - without this check, tapping Pause spawns a
+        // ball nobody meant to drop, which then falls as soon as the game
+        // unpauses.
+        if (IsPointerDown() && !IsPointerOverUI())
         {
             Spawn();
         }
@@ -81,6 +87,25 @@ public class BallSpawn : MonoBehaviour
             return phase == TouchPhase.Ended || phase == TouchPhase.Canceled;
         }
         return Input.GetMouseButtonUp(0);
+    }
+
+    /// <summary>
+    /// True if the current press/touch started over a UI element (a Button,
+    /// Image with Raycast Target, etc.) rather than empty game view.
+    /// </summary>
+    private bool IsPointerOverUI()
+    {
+        if (EventSystem.current == null)
+        {
+            return false;
+        }
+
+        if (Input.touchCount > 0)
+        {
+            return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+        }
+
+        return EventSystem.current.IsPointerOverGameObject();
     }
 
     private Vector3 GetPointerScreenPosition()
