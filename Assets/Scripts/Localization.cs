@@ -1,16 +1,17 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Minimal string localization so the UI isn't hardcoded to Russian. Language is
-/// picked once per session: from the Yandex Games SDK's reported language when
-/// running on Yandex Games, falling back to Unity's Application.systemLanguage
-/// elsewhere (Editor, other platforms), and finally to Russian if neither maps to
-/// a known language.
+/// Minimal string localization. For now this always returns English - CrazyGames
+/// (and anywhere else outside Yandex) requires English, and Yandex Games isn't
+/// currently accepting new partner submissions, so there's no live benefit to
+/// keeping a Russian table around right now.
 ///
-/// Add more languages by adding another inner dictionary to _strings and another
-/// case to ResolveLanguageCode(); every call site only ever asks for a key via
-/// Localization.Get(...), so adding languages never touches gameplay code.
+/// If/when this project goes back to Yandex and Russian matters again, bring
+/// back a per-language dictionary here (keyed by Score/Record/NewRecord) and
+/// resolve it from Yandex.YandexGamesBridge.Instance.GetLanguage() when running
+/// on WebGL outside the Editor, English otherwise. Every call site only ever
+/// asks for a key via Localization.Get(...), so that change never touches
+/// gameplay code.
 /// </summary>
 public static class Localization
 {
@@ -23,85 +24,12 @@ public static class Localization
         if (key == Score)
             return "Score: ";
 
-        else if (key == Record)
+        if (key == Record)
             return "Best: ";
 
-        else if (key == NewRecord)
+        if (key == NewRecord)
             return "New best: ";
 
         return key;
     }
-
-    //    private static readonly Dictionary<string, Dictionary<string, string>> _strings =
-    //        new Dictionary<string, Dictionary<string, string>>
-    //        {
-    //            ["ru"] = new Dictionary<string, string>
-    //            {
-    //                [Score] = "Очки: ",
-    //                [Record] = "Рекорд: ",
-    //                [NewRecord] = "Новый рекорд: ",
-    //            },
-    //            ["en"] = new Dictionary<string, string>
-    //            {
-    //                [Score] = "Score: ",
-    //                [Record] = "Best: ",
-    //                [NewRecord] = "New best: ",
-    //            },
-    //        };
-
-    //    private static string _languageCode;
-
-    //    private static string LanguageCode
-    //    {
-    //        get
-    //        {
-    //            if (_languageCode == null)
-    //            {
-    //                _languageCode = ResolveLanguageCode();
-    //            }
-    //            return _languageCode;
-    //        }
-    //    }
-
-    //    public static string Get(string key)
-    //    {
-    //        if (_strings.TryGetValue(LanguageCode, out Dictionary<string, string> table) &&
-    //            table.TryGetValue(key, out string value))
-    //        {
-    //            return value;
-    //        }
-
-    //        // Fall back to Russian (the game's original/default language) if the active
-    //        // language is missing this key, then finally the key itself so a typo is at
-    //        // least visible instead of silently blank.
-    //        if (_strings.TryGetValue("ru", out Dictionary<string, string> ru) &&
-    //            ru.TryGetValue(key, out string ruValue))
-    //        {
-    //            return ruValue;
-    //        }
-
-    //        return key;
-    //    }
-
-    //    private static string ResolveLanguageCode()
-    //    {
-    //#if UNITY_WEBGL && !UNITY_EDITOR
-    //        if (Yandex.YandexGamesBridge.Instance != null)
-    //        {
-    //            string sdkLang = Yandex.YandexGamesBridge.Instance.GetLanguage();
-    //            if (_strings.ContainsKey(sdkLang))
-    //            {
-    //                return sdkLang;
-    //            }
-    //        }
-    //#endif
-
-    //        switch (Application.systemLanguage)
-    //        {
-    //            case SystemLanguage.Russian:
-    //                return "ru";
-    //            default:
-    //                return _strings.ContainsKey("en") ? "en" : "ru";
-    //        }
-    //    }
 }
