@@ -1,23 +1,22 @@
 using UnityEngine;
 
 /// <summary>
-/// In-game pause menu: a Pause button opens a panel (freezing gameplay via
-/// Time.timeScale = 0 and muting audio) with three options - Resume, Restart,
-/// and Main Menu.
+/// In-game pause menu: a Pause button opens a panel with three options -
+/// Resume, Restart, and Main Menu.
 ///
-/// Time.timeScale is global and survives a scene load, so RestartFromPause()
-/// and GoMenuFromPause() both reset it to 1 before handing off to
-/// UiController.Restart()/GoMenu() - otherwise the next scene would load
-/// already frozen.
-///
-/// This only touches its own _pausePanel and Time.timeScale/AudioListener.pause;
-/// it doesn't know about ApplicationPauseHandler (which does the same two
-/// things on tab focus loss) and doesn't need to - whichever of the two paused
-/// last "wins" until something unpauses, and both restore the same way, so they
-/// never fight each other.
-///
-/// Wire a Pause button's OnClick to TogglePause(), and the pause panel's three
-/// buttons to Resume(), RestartFromPause(), and GoMenuFromPause().
+/// Deliberately does NOT use Time.timeScale (that would also freeze every
+/// animation, VFX and DOTween tween in the scene, which looked like
+/// everything "turning off" while paused). Instead it freezes only actual
+/// gameplay:
+/// - BallSpawn is disabled, so no new ball can be dropped.
+/// - BlitzTimer (if this scene has one) is disabled, so the countdown
+///   doesn't keep burning away while paused.
+/// - Every ball's Rigidbody2D has `simulated` set to false, which excludes it
+///   from physics entirely - no gravity, no collisions, it just hangs in the
+///   air exactly where it was - while leaving everything else (its sprite,
+///   any running animation/VFX, audio) untouched. Setting `simulated` back to
+///   true on resume continues the simulation from the ball's last velocity,
+///   so it falls again exactly as if nothing happened.
 /// </summary>
 public class PauseController : MonoBehaviour
 {
@@ -55,8 +54,7 @@ public class PauseController : MonoBehaviour
         }
 
         _isPaused = true;
-        Time.timeScale = 0f;
-        AudioListener.pause = true;
+        SetGameplayFrozen(true);
 
         if (_pausePanel != null)
         {
@@ -67,8 +65,7 @@ public class PauseController : MonoBehaviour
     public void Resume()
     {
         _isPaused = false;
-        Time.timeScale = 1f;
-        AudioListener.pause = false;
+        SetGameplayFrozen(false);
 
         if (_pausePanel != null)
         {
@@ -78,16 +75,36 @@ public class PauseController : MonoBehaviour
 
     public void RestartFromPause()
     {
-        Time.timeScale = 1f;
-        AudioListener.pause = false;
+        // Restart/GoMenu load a different scene, so there's nothing left here
+        // to un-freeze - just hand off.
         UiController.Instance.Restart();
     }
 
     public void GoMenuFromPause()
     {
-        Time.timeScale = 1f;
-        AudioListener.pause = false;
         UiController.Instance.GoMenu();
+    }
+
+    private static void SetGameplayFrozen(bool frozen)
+    {
+        BallSpawn spawner = FindObjectOfType<BallSpawn>();
+        if (spawner != null)
+        {
+            spawner.enabled = !frozen;
+        }
+
+        // Only present in Blitz-style scenes; harmless no-op everywhere else.
+        BlitzTimer timer = FindObjectOfType<BlitzTimer>();
+        if (timer != null)
+        {
+            timer.enabled = !frozen;
+        }
+
+        Rigidbody2D[] bodies = FindObjectsOfType<Rigidbody2D>();
+        foreach (Rigidbody2D body in bodies)
+        {
+            body.simulated = !frozen;
+        }
     }
 
     private static bool IsOtherPanelShowing()

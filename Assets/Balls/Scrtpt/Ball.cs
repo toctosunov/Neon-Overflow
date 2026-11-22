@@ -43,6 +43,9 @@ public class Ball : MonoBehaviour
     // and bounce correctly between two balls.
     private static PhysicsMaterial2D[] _chaosMaterialPool;
 
+    private BallSpawn.gameMode _gameMode;
+    private Coroutine _gravityEaseIn;
+
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
@@ -59,11 +62,53 @@ public class Ball : MonoBehaviour
 
     public void OnGravityChanged(float gravity)
     {
-        _rigidbody.gravityScale = gravity;
+        // Gravity mode periodically flips Physics2D.gravity to pull everything
+        // upward for a moment (GravityFlipController). A ball released right as
+        // that pulse is active used to snap straight to gravityScale 1 and get
+        // the FULL pulse instantly - and since a just-dropped ball starts right
+        // next to the ceiling, "full upward force" meant it reached the ceiling
+        // almost the instant it was released. Easing gravityScale in over a
+        // fraction of a second instead gives the ball (and the pulse, which eases
+        // itself in/out over a similar timescale) a moment to settle rather than
+        // slamming into the ceiling the instant it's let go. Every other mode is
+        // unaffected - this only changes behavior for Gravity.
+        if (_gravityEaseIn != null)
+        {
+            StopCoroutine(_gravityEaseIn);
+            _gravityEaseIn = null;
+        }
+
+        if (gravity > 0f && _gameMode == BallSpawn.gameMode.Gravity)
+        {
+            _gravityEaseIn = StartCoroutine(EaseInGravityScale(gravity));
+        }
+        else
+        {
+            _rigidbody.gravityScale = gravity;
+        }
+    }
+
+    private IEnumerator EaseInGravityScale(float targetScale)
+    {
+        const float duration = 0.4f;
+        float elapsed = 0f;
+        _rigidbody.gravityScale = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            _rigidbody.gravityScale = Mathf.Lerp(0f, targetScale, elapsed / duration);
+            yield return null;
+        }
+
+        _rigidbody.gravityScale = targetScale;
+        _gravityEaseIn = null;
     }
 
     public void OnGameModeChanged(BallSpawn.gameMode gameMode)
     {
+        _gameMode = gameMode;
+
         if (gameMode == BallSpawn.gameMode.Chaos)
         {
             PhysicsMaterial2D[] pool = GetChaosMaterialPool();

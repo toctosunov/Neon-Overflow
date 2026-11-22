@@ -29,6 +29,28 @@ public class BlitzTimer : MonoBehaviour
     {
         currentTime = duration;
         timerBar.fillAmount = 1f;
+
+        // The scene opens behind a black fade panel (see Menu.cs) that takes a
+        // couple seconds to fade out, during which the player can't do anything
+        // yet - but this timer used to start counting (and stay visibly ticking
+        // on screen, drawn on top of that panel) the instant the scene loaded,
+        // burning away real Blitz time before the player could even react.
+        // Starting hidden and only showing/counting once Menu.cs calls
+        // BeginCountdown() (right when the fade finishes) fixes both: a disabled
+        // GameObject's Update() doesn't run at all, so currentTime simply isn't
+        // touched until then.
+        gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Called by Menu.cs - the same script that owns the black fade panel -
+    /// right when the intro fade-out finishes, so the countdown (and the timer
+    /// UI itself) only starts once the player can actually see and play the
+    /// scene.
+    /// </summary>
+    public void BeginCountdown()
+    {
+        gameObject.SetActive(true);
     }
 
     void Update()
